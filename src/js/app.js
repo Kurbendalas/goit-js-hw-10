@@ -14,6 +14,12 @@ function hideLoadingMessage() {
   loadingMessage.style.display = 'none';
 }
 
+// Show error message
+function showError(errorMessage) {
+  catInfo.innerHTML = `<p class="error-message">${errorMessage}</p>`;
+  hideLoadingMessage(); // Hide loading message
+}
+
 // Fetch breeds and populate the select options
 function populateBreeds() {
   showLoadingMessage(); // Show loading message
@@ -23,10 +29,14 @@ function populateBreeds() {
   fetchBreeds()
     .then(breeds => {
       if (breeds.length > 0) {
-        breeds.forEach(breed => {
+        const breedOptions = breeds.map(breed => {
           const option = document.createElement('option');
           option.value = breed.id;
           option.textContent = breed.name;
+          return option;
+        });
+
+        breedOptions.forEach(option => {
           breedSelect.appendChild(option);
         });
 
@@ -38,7 +48,7 @@ function populateBreeds() {
       }
     })
     .catch(() => {
-      showError();
+      showError('Failed to fetch breeds.'); // Show error message if fetching breeds fails
     });
 }
 
@@ -55,6 +65,9 @@ function fetchCatInformation(breedId) {
         const cat = cats[0];
         const image = document.createElement('img');
         image.src = cat.url;
+        image.addEventListener('error', () => {
+          showError('Failed to load image.'); // Show error message if image fails to load
+        });
 
         const description = document.createElement('p');
         description.textContent = `Description: ${cat.breeds[0].description}`;
@@ -65,10 +78,12 @@ function fetchCatInformation(breedId) {
         catInfo.appendChild(image);
         catInfo.appendChild(description);
         catInfo.appendChild(temperament);
+      } else {
+        showError('No cat information available.'); // Show error message if no cat information is available
       }
     })
     .catch(() => {
-      showError();
+      showError('Failed to fetch cat information.'); // Show error message if fetching cat information fails
     });
 }
 
@@ -79,5 +94,6 @@ breedSelect.addEventListener('change', () => {
 });
 
 // Initialize app
+breedSelect.style.display = 'none'; // Hide breed select initially
 populateBreeds();
 hideLoadingMessage(); // Hide loading message on initial load
